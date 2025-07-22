@@ -1,8 +1,7 @@
 ﻿using MyTaskManager;
-using System;
 using System.Text.Json;
 
-List<Tasks> AllTasks = new List<Tasks>();
+List<UserTask> AllTasks = new List<UserTask>();
 
 int choice = -1;
 
@@ -27,10 +26,10 @@ do
             DeleteTask();
             break;
         case 4:
-            SaveTasksAsync();
+            await SaveTasksAsync();
             break;
         case 5:
-            LoadTasks();
+            await LoadTasks();
             break;
     }
 } while(choice != 0);
@@ -50,7 +49,7 @@ void PrintEntryText()
 void PrintTasks()
 {
     int taskCount = 1;
-    foreach (Tasks task in AllTasks)
+    foreach (UserTask task in AllTasks)
     {
         Console.WriteLine($"{taskCount}. {task.Name}\n" +
             $"Создана: {task.Created}\n" +
@@ -79,7 +78,7 @@ void AddTask()
     Console.WriteLine("Введите текст задачи: ");
     string description = Console.ReadLine();
 
-    AllTasks.Add(new Tasks(name, description, DateTime.Now));
+    AllTasks.Add(new UserTask(name, description, DateTime.Now));
 }
 
 void DeleteTask()
@@ -93,6 +92,7 @@ void DeleteTask()
     PrintTasks();
 
     Console.WriteLine("Введите порядковый номер задачи, которую хотите удалить. (Для отмены введите 0)");
+    int choice = -1;
     while (!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > AllTasks.Count)
     {
         Console.WriteLine("Неверный ввод.");
@@ -110,50 +110,76 @@ async Task SaveTasksAsync()
         return;
     }
 
-    Console.WriteLine("Внимание, данные будут полностью перезаписаны! Вы уверены, что хотите продолжить? (да/нет)");
-    string answer = Console.ReadLine();
-    while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
+    Console.WriteLine("Введите имя файла сохранения. Не менее трех символов.");
+    string saveName = Console.ReadLine() + ".json";
+    while (saveName.Length < 3)
     {
-        Console.WriteLine("Неверный ввод. Введите да или нет.");
+        Console.WriteLine("Неверный ввод. Введите имя не менее трех символов!");
+        saveName = Console.ReadLine() + ".json";
     }
-    if(answer.ToLower().Equals("да"))
+
+    if (File.Exists(saveName))
+    {
+        Console.WriteLine("Внимание, данные будут полностью перезаписаны! Вы уверены, что хотите продолжить? (да/нет)");
+        string answer = Console.ReadLine();
+        while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
+        {
+            Console.WriteLine("Неверный ввод. Введите да или нет.");
+        }
+        if (answer.ToLower().Equals("да"))
+        {
+            string json = JsonSerializer.Serialize(AllTasks);
+            await File.WriteAllTextAsync(saveName, json);
+            Console.WriteLine("Задачи успешно сохранены!");
+        }
+        else if (answer.ToLower().Equals("нет"))
+        {
+            Console.WriteLine("Операция сохранения отменена!");
+            return;
+        }
+    }
+    else
     {
         string json = JsonSerializer.Serialize(AllTasks);
-        await File.WriteAllTextAsync("AllTasks.json", json);
+        await File.WriteAllTextAsync(saveName, json);
         Console.WriteLine("Задачи успешно сохранены!");
-    }
-    else if(answer.ToLower().Equals("нет"))
-    {
-        Console.WriteLine("Операция сохранения отменена!");
-        return;
     }
 }
 
 async Task LoadTasks()
 {
-    if (!File.Exists("AllTasks.json"))
+    Console.WriteLine("Введите имя файла сохранения. Чувствителен к регистру!"); //TODO change to select file
+    string saveName = Console.ReadLine() + ".json";
+    while (saveName.Length < 3)
     {
-        Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
+        Console.WriteLine("Неверный ввод. Введите имя не менее трех символов!");
+        saveName = Console.ReadLine() + ".json";
+    }
+
+    if (!File.Exists(saveName))
+    {
+        Console.WriteLine("Файла с таким именем не существует!");
         return;
     }
 
-    Console.WriteLine("Внимание, данные будут полностью перезаписаны! Вы уверены, что хотите продолжить? (да/нет)");
-    string answer = Console.ReadLine();
-    while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
+    if(AllTasks.Count > 0)
     {
-        Console.WriteLine("Неверный ввод. Введите да или нет.");
+        Console.WriteLine("Внимание! Текущие данные будут стерты! Вы уверены, что хотите продолжить? (да/нет)");
+        string answer = Console.ReadLine();
+        while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
+        {
+            Console.WriteLine("Неверный ввод. Введите да или нет.");
+        }
+        if (answer.ToLower().Equals("нет"))
+        {
+            Console.WriteLine("Операция загрузки отменена!");
+            return;
+        }
     }
-    if (answer.ToLower().Equals("да"))
-    {
-        AllTasks = new List<Tasks>();
-        string json = await File.ReadAllTextAsync("AllTasks.json");
 
-        AllTasks = JsonSerializer.Deserialize<List<Tasks>>(json);
-        Console.WriteLine("Данные успешно загружены!");
-    }
-    else if (answer.ToLower().Equals("нет"))
-    {
-        Console.WriteLine("Операция загрузки отменена!");
-        return;
-    }
+    AllTasks = new List<UserTask>();
+    string json = await File.ReadAllTextAsync(saveName);
+
+    AllTasks = JsonSerializer.Deserialize<List<UserTask>>(json);
+    Console.WriteLine("Данные успешно загружены!");
 }
