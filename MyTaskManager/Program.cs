@@ -1,9 +1,15 @@
 ﻿using MyTaskManager;
 using System.Text.Json;
 
+const string SaveDirectory = "Saves";
 List<UserTask> AllTasks = new List<UserTask>();
 
 int choice = -1;
+
+if (!Directory.Exists(SaveDirectory))
+{
+    Directory.CreateDirectory(SaveDirectory);
+}
 
 do
 {
@@ -104,6 +110,7 @@ void DeleteTask()
 
 async Task SaveTasksAsync()
 {
+    string saveName;
     if (AllTasks.Count == 0)
     {
         Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
@@ -111,25 +118,28 @@ async Task SaveTasksAsync()
     }
 
     Console.WriteLine("Введите имя файла сохранения. Не менее трех символов.");
-    string saveName = Console.ReadLine() + ".json";
+    saveName = Console.ReadLine();
     while (saveName.Length < 3)
     {
         Console.WriteLine("Неверный ввод. Введите имя не менее трех символов!");
-        saveName = Console.ReadLine() + ".json";
+        saveName = Console.ReadLine();
     }
+    saveName += ".json";
 
-    if (File.Exists(saveName))
+    string fullSavePath = Path.Combine(SaveDirectory, saveName);
+    if (File.Exists(fullSavePath))
     {
         Console.WriteLine("Внимание, данные будут полностью перезаписаны! Вы уверены, что хотите продолжить? (да/нет)");
         string answer = Console.ReadLine();
         while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
         {
             Console.WriteLine("Неверный ввод. Введите да или нет.");
+            answer = Console.ReadLine();
         }
         if (answer.ToLower().Equals("да"))
         {
             string json = JsonSerializer.Serialize(AllTasks);
-            await File.WriteAllTextAsync(saveName, json);
+            await File.WriteAllTextAsync(fullSavePath, json);
             Console.WriteLine("Задачи успешно сохранены!");
         }
         else if (answer.ToLower().Equals("нет"))
@@ -141,7 +151,7 @@ async Task SaveTasksAsync()
     else
     {
         string json = JsonSerializer.Serialize(AllTasks);
-        await File.WriteAllTextAsync(saveName, json);
+        await File.WriteAllTextAsync(fullSavePath, json);
         Console.WriteLine("Задачи успешно сохранены!");
     }
 }
@@ -149,14 +159,17 @@ async Task SaveTasksAsync()
 async Task LoadTasks()
 {
     Console.WriteLine("Введите имя файла сохранения. Чувствителен к регистру!"); //TODO change to select file
-    string saveName = Console.ReadLine() + ".json";
+    string saveName = Console.ReadLine();
+
     while (saveName.Length < 3)
     {
         Console.WriteLine("Неверный ввод. Введите имя не менее трех символов!");
-        saveName = Console.ReadLine() + ".json";
+        saveName = Console.ReadLine();
     }
+    saveName += ".json";
+    string fullSavePath = Path.Combine(SaveDirectory, saveName);
 
-    if (!File.Exists(saveName))
+    if (!File.Exists(fullSavePath))
     {
         Console.WriteLine("Файла с таким именем не существует!");
         return;
@@ -169,6 +182,7 @@ async Task LoadTasks()
         while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
         {
             Console.WriteLine("Неверный ввод. Введите да или нет.");
+            answer = Console.ReadLine();
         }
         if (answer.ToLower().Equals("нет"))
         {
@@ -178,7 +192,7 @@ async Task LoadTasks()
     }
 
     AllTasks = new List<UserTask>();
-    string json = await File.ReadAllTextAsync(saveName);
+    string json = await File.ReadAllTextAsync(fullSavePath);
 
     AllTasks = JsonSerializer.Deserialize<List<UserTask>>(json);
     Console.WriteLine("Данные успешно загружены!");
