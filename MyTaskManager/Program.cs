@@ -34,7 +34,7 @@ do
             await SaveTasksAsync();
             break;
         case 5:
-            await LoadTasks();
+            await LoadTasksAsync();
             break;
     }
 } while(choice != 0);
@@ -67,28 +67,33 @@ void PrintTasks()
 
 void CheckTasks()
 {
+    Console.Clear();
     if (AllTasks.Count == 0)
     {
         Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
         return;
     }
-
     PrintTasks();
 }
 
 void AddTask()
 {
+    Console.Clear();
     Console.WriteLine("Введите название задачи: ");
     string name = Console.ReadLine();
 
     Console.WriteLine("Введите текст задачи: ");
     string description = Console.ReadLine();
 
-    AllTasks.Add(new UserTask(name, description, DateTime.Now));
+    AllTasks.Add(new UserTask(name, description, DateTime.Now)); 
+    Console.Clear();
+    Console.WriteLine("Задача успешно  добавлена!");
+    Console.WriteLine();
 }
 
 void DeleteTask()
 {
+    Console.Clear();
     if (AllTasks.Count == 0)
     {
         Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
@@ -106,10 +111,14 @@ void DeleteTask()
     }
     if (choice == 0) return;
     AllTasks.RemoveAt(choice - 1);
+    Console.Clear();
+    Console.WriteLine("Задача успешно удалена!");
+    Console.WriteLine();
 }
 
 async Task SaveTasksAsync()
 {
+    Console.Clear();
     string saveName;
     if (AllTasks.Count == 0)
     {
@@ -138,8 +147,7 @@ async Task SaveTasksAsync()
         }
         if (answer.ToLower().Equals("да"))
         {
-            string json = JsonSerializer.Serialize(AllTasks);
-            await File.WriteAllTextAsync(fullSavePath, json);
+            await Saving(fullSavePath);
             Console.WriteLine("Задачи успешно сохранены!");
         }
         else if (answer.ToLower().Equals("нет"))
@@ -150,15 +158,16 @@ async Task SaveTasksAsync()
     }
     else
     {
-        string json = JsonSerializer.Serialize(AllTasks);
-        await File.WriteAllTextAsync(fullSavePath, json);
+        await Saving(fullSavePath);
+        Console.Clear();
         Console.WriteLine("Задачи успешно сохранены!");
+        Console.WriteLine();
     }
 }
 
-async Task LoadTasks()
+async Task LoadTasksAsync()
 {
-    Console.WriteLine();
+    Console.Clear();
     string dirName = "Saves";
     if (Directory.Exists(dirName))
     {
@@ -172,7 +181,7 @@ async Task LoadTasks()
         Console.WriteLine("Список файлов для загрузки:");
         for (int i = 0; i < files.Length; i++)
         {
-            Console.WriteLine($"{i + 1}. {files[i]}");
+            Console.WriteLine($"{i + 1}. {Path.GetFileName(files[i])}");
         }
 
         int choice = -1;
@@ -187,9 +196,6 @@ async Task LoadTasks()
         }
 
         string saveName = files[choice-1].ToString();
-
-        AllTasks = new List<UserTask>();
-        string json = await File.ReadAllTextAsync(saveName);
 
         if (AllTasks.Count > 0)
         {
@@ -206,9 +212,56 @@ async Task LoadTasks()
                 return;
             }
         }
-
-        AllTasks = JsonSerializer.Deserialize<List<UserTask>>(json);
-        Console.WriteLine("Данные успешно загружены!");
+        try
+        {
+            string json = await File.ReadAllTextAsync(saveName);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                Console.WriteLine($"Ошибка: Файл '{Path.GetFileName(saveName)}' пуст или содержит некорректные данные.");
+                AllTasks = new List<UserTask>();
+                return;
+            }
+            AllTasks = JsonSerializer.Deserialize<List<UserTask>>(json);
+            Console.Clear();
+            Console.WriteLine("Данные успешно загружены!");
+        }
+        catch (FileNotFoundException)
+        {
+            Console.WriteLine($"Файл '{Path.GetFileName(saveName)}' не найден.");
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"Ошибка при обработке файла задач: {Path.GetFileName(saveName)}. Возможно, файл поврежден или имеет неверный формат JSON.");
+            Console.WriteLine($"Подробности: {ex.Message}");
+            AllTasks = new List<UserTask>();
+        }
+        catch (Exception ex) 
+        {
+            Console.WriteLine($"Произошла ошибка при загрузке задач: {ex.Message}");
+        }
+        Console.WriteLine();
     }
-    Console.WriteLine();
+}
+
+async Task Saving(string fullSavePath)
+{
+    try
+    {
+        string json = JsonSerializer.Serialize(AllTasks);
+        await File.WriteAllTextAsync(fullSavePath, json);
+    }
+    catch (FileNotFoundException)
+    {
+        Console.WriteLine($"Ошибка: Файл '{Path.GetFileName(fullSavePath)}' не найден.");
+    }
+    catch (JsonException ex)
+    {
+        Console.WriteLine($"Ошибка при обработке файла задач: {Path.GetFileName(fullSavePath)}. Возможно, файл поврежден или имеет неверный формат JSON.");
+        Console.WriteLine($"Подробности: {ex.Message}");
+        AllTasks = new List<UserTask>();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Произошла ошибка при загрузке задач: {ex.Message}");
+    }
 }
