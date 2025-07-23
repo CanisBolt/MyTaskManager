@@ -14,7 +14,7 @@ if (!Directory.Exists(SaveDirectory))
 do
 {
     PrintEntryText();
-    while(!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > 5)
+    while(!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > 6)
     {
         Console.WriteLine("Неверный ввод.");
         PrintEntryText();
@@ -22,7 +22,7 @@ do
     switch (choice)
     {
         case 1:
-            CheckTasks();
+            CheckTasks(out bool no); // Required more knowledge for workaround
             break;
         case 2:
             AddTask();
@@ -36,6 +36,9 @@ do
         case 5:
             await LoadTasksAsync();
             break;
+        case 6:
+            EditTask();
+            break;
     }
 } while(choice != 0);
 
@@ -48,6 +51,7 @@ void PrintEntryText()
         "3. Удаление задач\n" +
         "4. Сохранение задач\n" +
         "5. Загрузка задач\n" +
+        "6. Редактировать задачу\n" +
         "0. Выйти из программы");
     Console.WriteLine();
 }
@@ -65,12 +69,14 @@ void PrintTasks()
     }
 }
 
-void CheckTasks()
+void CheckTasks(out bool isEmpty)
 {
     Console.Clear();
+    isEmpty = false;
     if (AllTasks.Count == 0)
     {
         Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
+        isEmpty = true;
         return;
     }
     PrintTasks();
@@ -93,14 +99,12 @@ void AddTask()
 
 void DeleteTask()
 {
-    Console.Clear();
-    if (AllTasks.Count == 0)
+    bool isEmpty;
+    CheckTasks(out isEmpty);
+    if(isEmpty)
     {
-        Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
         return;
     }
-
-    PrintTasks();
 
     Console.WriteLine("Введите порядковый номер задачи, которую хотите удалить. (Для отмены введите 0): ");
     int choice = -1;
@@ -240,6 +244,54 @@ async Task LoadTasksAsync()
             Console.WriteLine($"Произошла ошибка при загрузке задач: {ex.Message}");
         }
         Console.WriteLine();
+    }
+}
+
+void EditTask()
+{
+    bool isEmpty;
+    CheckTasks(out isEmpty);
+    if (isEmpty)
+    {
+        return;
+    }
+
+    Console.WriteLine("Выберите задачу для редактирования: ");
+    int choice = -1;
+    Console.WriteLine("Введите порядковый номер файла для редактирования. 0 для отмены редактирования: ");
+    while (!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > AllTasks.Count)
+    {
+        Console.WriteLine("Неверный ввод.");
+    }
+    if (choice == 0)
+    {
+        return;
+    }
+    UserTask editTask = new UserTask(AllTasks[choice-1].Name, AllTasks[choice-1].Description, AllTasks[choice-1].Created);
+    bool isFileChanged = false;
+
+    Console.WriteLine($"Введите новое имя задачи (Если не желаете менять имя задачи, оставьте поле пустым):");
+    string name = Console.ReadLine();
+
+    if(!string.IsNullOrEmpty(name))
+    {
+        editTask.Name = name;
+        isFileChanged = true;
+    }
+
+    Console.WriteLine($"Введите новое описание задачи (Если не желаете менять описание задачи, оставьте поле пустым):");
+    string description = Console.ReadLine();
+    if (!string.IsNullOrEmpty(description))
+    {
+        editTask.Description = description;
+        isFileChanged = true;
+    }
+
+    if (isFileChanged)
+    {
+        AllTasks[choice - 1].Name = editTask.Name;
+        AllTasks[choice - 1].Description = editTask.Description;
+        AllTasks[choice - 1].Created = DateTime.Now;
     }
 }
 
