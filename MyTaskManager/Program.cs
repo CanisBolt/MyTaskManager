@@ -1,5 +1,6 @@
 ﻿using MyTaskManager;
 using System.Text.Json;
+using System.Xml.Linq;
 
 const string SaveDirectory = "Saves";
 List<UserTask> AllTasks = new List<UserTask>();
@@ -323,18 +324,30 @@ async Task Saving(string fullSavePath)
     }
 }
 
-static string GetTaskDescriptionInput()
-{
-    Console.WriteLine("Введите текст задачи: ");
-    string description = Console.ReadLine();
-    return description;
-}
-
 static string GetTaskNameInput()
 {
     Console.WriteLine("Введите название задачи: ");
     string name = Console.ReadLine();
+    while(string.IsNullOrWhiteSpace(name))
+    {
+        Console.WriteLine("Название задачи не может быть пустым!");
+        Console.WriteLine("Введите название задачи: ");
+        name = Console.ReadLine();
+    }
     return name;
+}
+
+static string GetTaskDescriptionInput()
+{
+    Console.WriteLine("Введите текст задачи: ");
+    string description = Console.ReadLine();
+    while (string.IsNullOrWhiteSpace(description))
+    {
+        Console.WriteLine("Текст задачи не может быть пустым!");
+        Console.WriteLine("Введите текст задачи: ");
+        description = Console.ReadLine();
+    }
+    return description;
 }
 
 static int GetTaskPriorityInput()
