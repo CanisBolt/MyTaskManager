@@ -22,7 +22,7 @@ do
     switch (choice)
     {
         case 1:
-            CheckTasks(out bool no); // Required more knowledge for workaround
+            CheckTasks();
             break;
         case 2:
             AddTask();
@@ -63,35 +63,33 @@ void PrintTasks()
     {
         Console.WriteLine($"{taskCount}. {task.Name}\n" +
             $"Создана: {task.Created}\n" +
-            $"{task.Description}");
+            $"{task.Description}\n" +
+            $"Приоритет: {task.TaskPriority}");
         taskCount++;
         Console.WriteLine();
     }
 }
 
-void CheckTasks(out bool isEmpty)
+bool CheckTasks()
 {
     Console.Clear();
-    isEmpty = false;
     if (AllTasks.Count == 0)
     {
         Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
-        isEmpty = true;
-        return;
+        return true;
     }
     PrintTasks();
+    return false;
 }
 
 void AddTask()
 {
     Console.Clear();
-    Console.WriteLine("Введите название задачи: ");
-    string name = Console.ReadLine();
+    string name = GetTaskNameInput();
+    string description = GetTaskDescriptionInput();
+    int choice = GetTaskPriorityInput() - 1;
 
-    Console.WriteLine("Введите текст задачи: ");
-    string description = Console.ReadLine();
-
-    AllTasks.Add(new UserTask(name, description, DateTime.Now)); 
+    AllTasks.Add(new UserTask(name, description, DateTime.Now, UserTask.SetTaskPriority(choice)));
     Console.Clear();
     Console.WriteLine("Задача успешно  добавлена!");
     Console.WriteLine();
@@ -99,9 +97,7 @@ void AddTask()
 
 void DeleteTask()
 {
-    bool isEmpty;
-    CheckTasks(out isEmpty);
-    if(isEmpty)
+    if(CheckTasks())
     {
         return;
     }
@@ -114,10 +110,67 @@ void DeleteTask()
         Console.WriteLine("Введите порядковый номер задачи, которую хотите удалить. (Для отмены введите 0): ");
     }
     if (choice == 0) return;
-    AllTasks.RemoveAt(choice - 1);
+    choice--;
+    AllTasks.RemoveAt(choice);
     Console.Clear();
     Console.WriteLine("Задача успешно удалена!");
     Console.WriteLine();
+}
+
+void EditTask()
+{
+    if (CheckTasks())
+    {
+        return;
+    }
+
+    Console.WriteLine("Выберите задачу для редактирования: ");
+    int choice = -1;
+    Console.WriteLine("Введите порядковый номер файла для редактирования. 0 для отмены редактирования: ");
+    while (!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > AllTasks.Count)
+    {
+        Console.WriteLine("Неверный ввод.");
+    }
+    if (choice == 0)
+    {
+        return;
+    }
+    UserTask editTask = new UserTask(AllTasks[choice - 1].Name, AllTasks[choice - 1].Description, AllTasks[choice - 1].Created, AllTasks[choice - 1].TaskPriority);
+    bool isFileChanged = false;
+
+    string name = GetTaskNameInput();
+
+    if (!string.IsNullOrEmpty(name))
+    {
+        editTask.Name = name;
+        isFileChanged = true;
+    }
+
+    string description = GetTaskDescriptionInput();
+    if (!string.IsNullOrEmpty(description))
+    {
+        editTask.Description = description;
+        isFileChanged = true;
+    }
+
+
+    int taskChoice = GetTaskPriorityInput() - 1;
+    if (!editTask.TaskPriority.Equals(UserTask.SetTaskPriority(taskChoice)))
+    {
+        editTask.TaskPriority = UserTask.SetTaskPriority(taskChoice);
+        isFileChanged |= true;
+    }
+
+    choice--;
+    if (isFileChanged)
+    {
+        AllTasks[choice].Name = editTask.Name;
+        AllTasks[choice].Description = editTask.Description;
+        AllTasks[choice].Created = DateTime.Now;
+        AllTasks[choice].TaskPriority = editTask.TaskPriority;
+    }
+    Console.Clear();
+    Console.WriteLine("Задача успешно обновлена!");
 }
 
 async Task SaveTasksAsync()
@@ -247,54 +300,6 @@ async Task LoadTasksAsync()
     }
 }
 
-void EditTask()
-{
-    bool isEmpty;
-    CheckTasks(out isEmpty);
-    if (isEmpty)
-    {
-        return;
-    }
-
-    Console.WriteLine("Выберите задачу для редактирования: ");
-    int choice = -1;
-    Console.WriteLine("Введите порядковый номер файла для редактирования. 0 для отмены редактирования: ");
-    while (!int.TryParse(Console.ReadLine(), out choice) || choice < 0 || choice > AllTasks.Count)
-    {
-        Console.WriteLine("Неверный ввод.");
-    }
-    if (choice == 0)
-    {
-        return;
-    }
-    UserTask editTask = new UserTask(AllTasks[choice-1].Name, AllTasks[choice-1].Description, AllTasks[choice-1].Created);
-    bool isFileChanged = false;
-
-    Console.WriteLine($"Введите новое имя задачи (Если не желаете менять имя задачи, оставьте поле пустым):");
-    string name = Console.ReadLine();
-
-    if(!string.IsNullOrEmpty(name))
-    {
-        editTask.Name = name;
-        isFileChanged = true;
-    }
-
-    Console.WriteLine($"Введите новое описание задачи (Если не желаете менять описание задачи, оставьте поле пустым):");
-    string description = Console.ReadLine();
-    if (!string.IsNullOrEmpty(description))
-    {
-        editTask.Description = description;
-        isFileChanged = true;
-    }
-
-    if (isFileChanged)
-    {
-        AllTasks[choice - 1].Name = editTask.Name;
-        AllTasks[choice - 1].Description = editTask.Description;
-        AllTasks[choice - 1].Created = DateTime.Now;
-    }
-}
-
 async Task Saving(string fullSavePath)
 {
     try
@@ -316,4 +321,39 @@ async Task Saving(string fullSavePath)
     {
         Console.WriteLine($"Произошла ошибка при загрузке задач: {ex.Message}");
     }
+}
+
+static string GetTaskDescriptionInput()
+{
+    Console.WriteLine("Введите текст задачи: ");
+    string description = Console.ReadLine();
+    return description;
+}
+
+static string GetTaskNameInput()
+{
+    Console.WriteLine("Введите название задачи: ");
+    string name = Console.ReadLine();
+    return name;
+}
+
+static int GetTaskPriorityInput()
+{
+    Console.WriteLine("Выберите степень важности задачи:\n" +
+            "1. Низкая\n" +
+            "2. Средняя\n" +
+            "3. Высокая\n" +
+            "4. Срочная");
+    int choice = -1;
+    while (!int.TryParse(Console.ReadLine(), out choice) || choice < 1 || choice > 4)
+    {
+        Console.WriteLine("Неверный ввод.");
+        Console.WriteLine("Выберите степень важности задачи:\n" +
+        "1. Низкая\n" +
+        "2. Средняя\n" +
+        "3. Высокая\n" +
+        "4. Срочная");
+    }
+
+    return choice;
 }
