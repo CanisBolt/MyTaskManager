@@ -1,4 +1,6 @@
-﻿namespace MyTaskManager
+﻿using System.Text.Json.Serialization;
+
+namespace MyTaskManager
 {
     public class UserTask
     {
@@ -6,14 +8,27 @@
         public string Description { get; set; }
 
         public DateTime Created { get; set; }
+        public DateTime Completed { get; set; }
         public Priority TaskPriority { get; set; }
+        public bool IsCompleted { get; set; }
 
+        [JsonConstructor]
         public UserTask(string name, string description, DateTime created, Priority taskPriority)
         {
             Name = name;
             Description = description;
             Created = created;
             TaskPriority = taskPriority;
+            IsCompleted = false;
+        }
+
+        public UserTask(string name, string description, DateTime created, DateTime completed)
+        {
+            Name = name;
+            Description = description;
+            Created = created;
+            Completed = completed;
+            IsCompleted = true;
         }
 
         public static Priority SetTaskPriority(int priority)
