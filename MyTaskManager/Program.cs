@@ -1,6 +1,5 @@
 ﻿using MyTaskManager;
 using System.Text.Json;
-using System.Xml.Linq;
 
 const string SaveDirectory = "Saves";
 TaskManagerData taskManagerData = new TaskManagerData();
@@ -17,7 +16,7 @@ do
     switch (mainChoice)
     {
         case 1:
-            CheckTasks();
+            PrintTask();
             break;
         case 2:
             AddTask();
@@ -56,21 +55,12 @@ string PrintEntryText()
 
 bool PrintActiveTasks()
 {
-    if(taskManagerData.AllTasks.Count == 0)
+    if (taskManagerData.AllTasks.Count == 0)
     {
         Console.WriteLine("Нет активных задач. Сначала необходимо добавить хотя бы одну задачу.");
         return true;
     }
-    int taskCount = 1;
-    foreach (UserTask task in taskManagerData.AllTasks)
-    {
-        Console.WriteLine($"{taskCount}. {task.Name}\n" +
-            $"Создана: {task.Created}\n" +
-            $"{task.Description}\n" +
-            $"Приоритет: {task.TaskPriority}");
-        taskCount++;
-        Console.WriteLine();
-    }
+    SearchTasks(taskManagerData.AllTasks);
     return false;
 }
 
@@ -83,17 +73,60 @@ bool PrintArchiveTasks()
     }
     Console.WriteLine("-------------------------------------------------\n" +
         "\tАРХИВ:\n");
-    int taskCount = 1;
-    foreach (UserTask task in taskManagerData.ArchiveTasks)
-    {
-        Console.WriteLine($"{taskCount}. {task.Name}\n" +
-            $"Создана: {task.Created}\n" +
-            $"{task.Description}\n" +
-            $"Выполнена: {task.Completed}");
-        taskCount++;
-        Console.WriteLine();
-    }
+    SearchTasks(taskManagerData.ArchiveTasks);
     return false;
+}
+
+void PrintTask()
+{
+    Console.Clear();
+    int choice = GetUserInput(0, 4, "Выберите, какие задачи вы хотели бы посмотреть?\n" +
+        "1. Все задачи\n" +
+        "2. Все активные задачи\n" +
+        "3. Все архивные задачи\n" +
+        "4. По срочности\n" +
+        "0. Отмена");
+    switch(choice)
+    {
+        case 1:
+            PrintActiveTasks();
+            PrintArchiveTasks();
+            break;
+        case 2:
+            PrintActiveTasks();
+            break;
+        case 3:
+            PrintArchiveTasks();
+            break;
+        case 4:
+            PrintTaskByPriority();
+            break;
+        case 0: 
+            return;
+    }
+}
+
+void PrintTaskByPriority()
+{
+    Console.Clear();
+    int taskCount = 0;
+    int taskPriority = GetTaskPriorityInput() - 1;
+    foreach (UserTask task in taskManagerData.AllTasks) 
+    { 
+        if((int)task.TaskPriority == taskPriority)
+        {
+            taskCount++;
+            Console.WriteLine($"{taskCount}. {task.Name}\n" +
+                $"Создана: {task.Created.ToString("g")}\n" +
+                $"{task.Description}\n" +
+                $"Приоритет: {task.TaskPriority}");
+            Console.WriteLine();
+        }
+    }
+    if(taskCount == 0)
+    {
+        Console.WriteLine("Нет задач с указанным приоритетом!");
+    }
 }
 
 bool CheckTasks()
@@ -104,8 +137,6 @@ bool CheckTasks()
         Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
         return true;
     }
-    PrintActiveTasks();
-    PrintArchiveTasks();
     return false;
 }
 
@@ -431,4 +462,18 @@ static string GetUserInputYesNo()
     }
 
     return answer;
+}
+
+static void SearchTasks(List<UserTask> printedList)
+{
+    int taskCount = 0;
+    foreach (UserTask task in printedList)
+    {
+        taskCount++;
+        Console.WriteLine($"{taskCount}. {task.Name}\n" +
+                $"Создана: {task.Created.ToString("g")}\n" +
+                $"{task.Description}\n" +
+                $"Приоритет: {task.TaskPriority}");
+        Console.WriteLine();
+    }
 }
