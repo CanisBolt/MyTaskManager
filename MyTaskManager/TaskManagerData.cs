@@ -8,7 +8,7 @@ namespace MyTaskManager
 {
     public class TaskManagerData
     {
-        public List<UserTask> AllTasks { get; set; } = new List<UserTask>();
+        public List<UserTask> ActiveTasks { get; set; } = new List<UserTask>();
         public List<UserTask> ArchiveTasks { get; set; } = new List<UserTask>();
 
         public TaskManagerData()
