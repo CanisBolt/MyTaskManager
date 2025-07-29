@@ -1,6 +1,10 @@
 ﻿using MyTaskManager;
 using System.Text.Json;
+using System.Resources;
+using System.Reflection;
+Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("ru-RU");
 
+ResourceManager resourceManager = new ResourceManager("MyTaskManager.Resource", Assembly.GetExecutingAssembly());
 const string SaveDirectory = "Saves";
 TaskManagerData taskManagerData = new TaskManagerData();
 
@@ -42,22 +46,14 @@ do
 
 string PrintEntryText()
 {
-    return "Выберите действие:\n" +
-        "1. Просмотр задач\n" +
-        "2. Добавление задач\n" +
-        "3. Удаление задач\n" +
-        "4. Сохранение задач\n" +
-        "5. Загрузка задач\n" +
-        "6. Редактировать задачу\n" +
-        "7. Отметить как выполненную\n" +
-        "0. Выйти из программы";
+    return resourceManager.GetString("MainMenuPrompt");
 }
 
 void PrintAllTasks()
 {
     if(taskManagerData.ActiveTasks.Count + taskManagerData.ArchiveTasks.Count == 0)
     {
-        Console.WriteLine("Список задач пуст!");
+        Console.WriteLine(resourceManager.GetString("NoTasksFound"));
         return;
     }
     PrintActiveTasks();
@@ -68,7 +64,7 @@ void PrintActiveTasks()
 {
     if (taskManagerData.ActiveTasks.Count == 0)
     {
-        Console.WriteLine("Нет активных задач.");
+        Console.WriteLine(resourceManager.GetString("NoActiveTasks"));
         return;
     }
     DisplayTasks(taskManagerData.ActiveTasks);
@@ -78,11 +74,10 @@ void PrintArchiveTasks()
 {
     if (taskManagerData.ArchiveTasks.Count == 0)
     {
-        Console.WriteLine("Нет архивных задач.");
+        Console.WriteLine(resourceManager.GetString("NoArchiveTasks"));
         return;
     }
-    Console.WriteLine("-------------------------------------------------\n" +
-        "\tАРХИВ:\n");
+    Console.WriteLine(resourceManager.GetString("ArchiveHeader"));
     DisplayTasks(taskManagerData.ArchiveTasks);
 }
 
@@ -126,7 +121,7 @@ bool CheckTasks()
     Console.Clear();
     if(taskManagerData.ActiveTasks.Count + taskManagerData.ArchiveTasks.Count == 0)
     {
-        Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
+        Console.WriteLine(resourceManager.GetString("NoTasksFound"));
         return true;
     }
     return false;
@@ -141,7 +136,7 @@ void AddTask()
 
     taskManagerData.ActiveTasks.Add(new UserTask(name, description, DateTime.Now, UserTask.SetTaskPriority(choice)));
     Console.Clear();
-    Console.WriteLine("Задача успешно  добавлена!");
+    Console.WriteLine(resourceManager.GetString("TaskSuccessfullyAdded"));
     Console.WriteLine();
 }
 
@@ -178,7 +173,7 @@ void DeleteTasks(List<UserTask> taskList)
     choice--;
     taskList.RemoveAt(choice);
     Console.Clear();
-    Console.WriteLine("Задача успешно удалена!");
+    Console.WriteLine(resourceManager.GetString("TaskSuccessfullyDeleted"));
     Console.WriteLine();
 }
 
@@ -224,7 +219,7 @@ void EditTask()
         taskManagerData.ActiveTasks[choice].Created = DateTime.Now;
     }
     Console.Clear();
-    Console.WriteLine("Задача успешно обновлена!");
+    Console.WriteLine(resourceManager.GetString("TaskSuccessfullyUpdated"));
 }
 
 void MarkAsCompleted()
@@ -241,22 +236,22 @@ void MarkAsCompleted()
     }
 
     choice--;
-    Console.WriteLine("Отметить задачу как выполненную?(да/нет)");
+    Console.WriteLine(resourceManager.GetString("MarkAsCompletedPrompt"));
     string answer = GetUserInputYesNo();
     if (answer.ToLower().Equals("да"))
     {
         taskManagerData.ActiveTasks[choice].IsCompleted = true;
-        Console.WriteLine("Желаете переместить данную задачу в архив?(да/нет)");
+        Console.WriteLine(resourceManager.GetString("MoveToArchivePrompt"));
         answer = GetUserInputYesNo();
         if (answer.ToLower().Equals("да"))
         {
             taskManagerData.ArchiveTasks.Add(new UserTask(taskManagerData.ActiveTasks[choice].Name, taskManagerData.ActiveTasks[choice].Description, taskManagerData.ActiveTasks[choice].Created, DateTime.Now));
             taskManagerData.ActiveTasks.Remove(taskManagerData.ActiveTasks[choice]);
-            Console.WriteLine("Задача выполнена и добавлена в архив!");
+            Console.WriteLine(resourceManager.GetString("TaskCompletedAndArchived"));
         }
         else
         {
-            Console.WriteLine("Желаете удалить данную задачу из списка?(да/нет)");
+            Console.WriteLine(resourceManager.GetString("DeleteAfterCompletionPrompt"));
             answer = GetUserInputYesNo();
             if (answer.ToLower().Equals("да"))
             {
@@ -272,15 +267,15 @@ async Task SaveTasksAsync()
     string saveName;
     if (taskManagerData.ActiveTasks.Count == 0)
     {
-        Console.WriteLine("Нет задач. Сначала необходимо добавить хотя бы одну задачу.");
+        Console.WriteLine(resourceManager.GetString("NoTasksFound"));
         return;
     }
 
-    Console.WriteLine("Введите имя файла сохранения. Не менее трех символов.");
+    Console.WriteLine(resourceManager.GetString("EnterSaveFileName"));
     saveName = Console.ReadLine();
     while (saveName.Length < 3)
     {
-        Console.WriteLine("Неверный ввод. Введите имя не менее трех символов!");
+        Console.WriteLine(resourceManager.GetString("SaveFileNameTooShort"));
         saveName = Console.ReadLine();
     }
     saveName += ".json";
@@ -288,7 +283,7 @@ async Task SaveTasksAsync()
     string fullSavePath = Path.Combine(SaveDirectory, saveName);
     if (File.Exists(fullSavePath))
     {
-        Console.WriteLine("Внимание, данные будут полностью перезаписаны! Вы уверены, что хотите продолжить? (да/нет): ");
+        Console.WriteLine(resourceManager.GetString("FileExistsOverwriteWarning"));
         string answer = GetUserInputYesNo();
         if (answer.ToLower().Equals("да"))
         {
@@ -296,7 +291,7 @@ async Task SaveTasksAsync()
         }
         else if (answer.ToLower().Equals("нет"))
         {
-            Console.WriteLine("Операция сохранения отменена!");
+            Console.WriteLine(resourceManager.GetString("SaveCancelled"));
             return;
         }
     }
@@ -305,7 +300,7 @@ async Task SaveTasksAsync()
         await Saving(fullSavePath);
     }
     Console.Clear();
-    Console.WriteLine("Задачи успешно сохранены!");
+    Console.WriteLine(resourceManager.GetString("TasksSuccessfullySaved"));
     Console.WriteLine();
 }
 
@@ -318,17 +313,17 @@ async Task Saving(string fullSavePath)
     }
     catch (FileNotFoundException)
     {
-        Console.WriteLine($"Ошибка: Файл '{Path.GetFileName(fullSavePath)}' не найден.");
+        Console.WriteLine(resourceManager.GetString("ErrorFileNotFound"));
     }
     catch (JsonException ex)
     {
-        Console.WriteLine($"Ошибка при обработке файла задач: {Path.GetFileName(fullSavePath)}. Возможно, файл поврежден или имеет неверный формат JSON.");
-        Console.WriteLine($"Подробности: {ex.Message}");
+        Console.WriteLine(resourceManager.GetString("ErrorCorruptedJson"));
+        Console.WriteLine(resourceManager.GetString("ErrorDetails"));
         taskManagerData = new TaskManagerData();
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Произошла ошибка при загрузке задач: {ex.Message}");
+        Console.WriteLine(resourceManager.GetString("ErrorGeneric"));
     }
 }
 
@@ -341,11 +336,11 @@ async Task LoadTasksAsync()
         string[] files = Directory.GetFiles(dirName, "*.json");
         if(files.Length == 0)
         {
-            Console.WriteLine("Нет файлов для загрузки:");
+            Console.WriteLine(resourceManager.GetString("NoFilesToLoad"));
             return;
         }
 
-        Console.WriteLine("Список файлов для загрузки:");
+        Console.WriteLine(resourceManager.GetString("FilesToLoadList"));
         for (int i = 0; i < files.Length; i++)
         {
             Console.WriteLine($"{i + 1}. {Path.GetFileName(files[i])}");
@@ -361,11 +356,11 @@ async Task LoadTasksAsync()
 
         if (taskManagerData.ActiveTasks.Count > 0 || taskManagerData.ArchiveTasks.Count > 0)
         {
-            Console.WriteLine("Внимание! Текущие данные будут стерты! Вы уверены, что хотите продолжить? (да/нет)");
+            Console.WriteLine(resourceManager.GetString("CurrentDataWillBeErased"));
             string answer = GetUserInputYesNo();
             if (answer.ToLower().Equals("нет"))
             {
-                Console.WriteLine("Операция загрузки отменена!");
+                Console.WriteLine(resourceManager.GetString("LoadCancelled"));
                 return;
             }
         }
@@ -374,66 +369,66 @@ async Task LoadTasksAsync()
             string json = await File.ReadAllTextAsync(saveName);
             if (string.IsNullOrWhiteSpace(json))
             {
-                Console.WriteLine($"Ошибка: Файл '{Path.GetFileName(saveName)}' пуст или содержит некорректные данные.");
+                Console.WriteLine(resourceManager.GetString("LoadErrorFileEmpty"));
                 taskManagerData = new TaskManagerData();
                 return;
             }
             var loadedData = JsonSerializer.Deserialize<TaskManagerData>(json);
             if (loadedData == null)
             {
-                Console.WriteLine("Не удалось загрузить!");
+                Console.WriteLine(resourceManager.GetString("LoadFailed"));
                 return;
             }
             taskManagerData = loadedData;
             Console.Clear();
-            Console.WriteLine("Данные успешно загружены!");
+            Console.WriteLine(resourceManager.GetString("DataLoadedSuccessfully"));
         }
         catch (FileNotFoundException)
         {
-            Console.WriteLine($"Файл '{Path.GetFileName(saveName)}' не найден.");
+            Console.WriteLine(resourceManager.GetString("ErrorFileNotFound"));
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"Ошибка при обработке файла задач: {Path.GetFileName(saveName)}. Возможно, файл поврежден или имеет неверный формат JSON.");
-            Console.WriteLine($"Подробности: {ex.Message}");
+            Console.WriteLine(resourceManager.GetString("ErrorCorruptedJson"));
+            Console.WriteLine(resourceManager.GetString("ErrorDetails"));
             taskManagerData = new TaskManagerData();
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
-            Console.WriteLine($"Произошла ошибка при загрузке задач: {ex.Message}");
+            Console.WriteLine(resourceManager.GetString("ErrorGeneric"));
         }
         Console.WriteLine();
     }
 }
 
-static string GetTaskNameInput()
+string GetTaskNameInput()
 {
-    Console.WriteLine("Введите название задачи: ");
+    Console.WriteLine(resourceManager.GetString("EnterTaskName"));
     string name = Console.ReadLine();
     while(string.IsNullOrWhiteSpace(name))
     {
-        Console.WriteLine("Название задачи не может быть пустым!");
-        Console.WriteLine("Введите название задачи: ");
+        Console.WriteLine(resourceManager.GetString("TaskNameCannotBeEmpty"));
+        Console.WriteLine(resourceManager.GetString("EnterTaskName"));
         name = Console.ReadLine();
     }
     return name;
 }
 
-static string GetTaskDescriptionInput()
+string GetTaskDescriptionInput()
 {
-    Console.WriteLine("Введите текст задачи: ");
+    Console.WriteLine(resourceManager.GetString("EnterTaskDescription"));
     string description = Console.ReadLine();
     while (string.IsNullOrWhiteSpace(description))
     {
-        Console.WriteLine("Текст задачи не может быть пустым!");
-        Console.WriteLine("Введите текст задачи: ");
+        Console.WriteLine(resourceManager.GetString("TaskDescriptionCannotBeEmpty"));
+        Console.WriteLine(resourceManager.GetString("EnterTaskDescription"));
         description = Console.ReadLine();
     }
     return description;
 }
 
 
-static int GetTaskPriorityInput()
+int GetTaskPriorityInput()
 {
     int choice = GetUserInput(1, 4, "Выберите степень важности задачи:\n" +
         "1. Низкая\n" +
@@ -445,25 +440,25 @@ static int GetTaskPriorityInput()
 
 
 /* User input methods */
-static int GetUserInput(int minValue, int maxValue, string message)
+int GetUserInput(int minValue, int maxValue, string message)
 {
     Console.WriteLine(message);
     int choice = -1;
     while (!int.TryParse(Console.ReadLine(), out choice) || choice <  minValue || choice > maxValue)
     {
-        Console.WriteLine("Неверный ввод.");
+        Console.WriteLine(resourceManager.GetString("InvalidInput"));
         Console.WriteLine(message);
     }
 
     return choice;
 }
 
-static string GetUserInputYesNo()
+string GetUserInputYesNo()
 {
     string answer = Console.ReadLine();
     while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
     {
-        Console.WriteLine("Неверный ввод. Введите да или нет.");
+        Console.WriteLine(resourceManager.GetString("InvalidInputYesNo"));
         answer = Console.ReadLine();
     }
 
@@ -471,7 +466,7 @@ static string GetUserInputYesNo()
 }
 
 /* Display tasks methods */
-static void DisplayTasks(List<UserTask> printedList)
+void DisplayTasks(List<UserTask> printedList)
 {
     int taskCount = 0;
     foreach (UserTask task in printedList)
@@ -485,7 +480,7 @@ static void DisplayTasks(List<UserTask> printedList)
     }
 }
 
-static void DisplayTasksByPriority(List<UserTask> printedList, int requiredPriority)
+void DisplayTasksByPriority(List<UserTask> printedList, int requiredPriority)
 {
     int taskCount = 0;
     foreach (UserTask task in printedList)
@@ -502,6 +497,6 @@ static void DisplayTasksByPriority(List<UserTask> printedList, int requiredPrior
     }
     if (taskCount == 0)
     {
-        Console.WriteLine("Нет задач с указанным приоритетом!");
+        Console.WriteLine(resourceManager.GetString("NoTasksWithPriority"));
     }
 }
