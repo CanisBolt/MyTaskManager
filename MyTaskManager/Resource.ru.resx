@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ChooseTaskView" xml:space="preserve">
-    <value>Выберите, какие задачи вы хотели бы посмотреть?\n1. Все задачи\n2. Все активные задачи\n3. Все архивные задачи\n4. По срочности\n0. Отмена</value>
+    <value>Выберите, какие задачи вы хотели бы посмотреть?{0}1. Все задачи{0}2. Все активные задачи{0}3. Все архивные задачи{0}4. По срочности{0}0. Отмена</value>
   </data>
   <data name="MainMenuPrompt" xml:space="preserve">
-    <value>Выберите действие:\n1. Просмотр задач\n2. Добавление задач\n3. Удаление задач\n4. Сохранение задач\n5. Загрузка задач\n6. Редактировать задачу\n7. Отметить как выполненную\n0. Выйти из программы</value>
+    <value>Выберите действие:{0}1. Просмотр задач{0}2. Добавление задач{0}3. Удаление задач{0}4. Сохранение задач{0}5. Загрузка задач{0}6. Редактировать задачу{0}7. Отметить как выполненную{0}0. Выйти из программы</value>
   </data>
   <data name="NoArchiveTasks" xml:space="preserve">
     <value>Нет архивных задач.</value>
@@ -142,7 +142,7 @@
     <value>Текст задачи не может быть пустым!</value>
   </data>
   <data name="ChoosePriority" xml:space="preserve">
-    <value>Выберите степень важности задачи:\n1. Низкая\n2. Средняя\n3. Высокая\n4. Срочная</value>
+    <value>Выберите степень важности задачи:{0}1. Низкая{0}2. Средняя{0}3. Высокая{0}4. Срочная</value>
   </data>
   <data name="InvalidInput" xml:space="preserve">
     <value>Неверный ввод.</value>
@@ -199,7 +199,7 @@
     <value>Операция загрузки отменена!</value>
   </data>
   <data name="LoadErrorFileEmpty" xml:space="preserve">
-    <value>Ошибка: Файл '{0}' пуст или содержит некорректные данные.</value>
+    <value>Ошибка: Файл {0} пуст или содержит некорректные данные.</value>
   </data>
   <data name="ErrorCorruptedJson" xml:space="preserve">
     <value>Ошибка при обработке файла задач: {0}. Возможно, файл поврежден или имеет неверный формат JSON.</value>
@@ -232,7 +232,7 @@
     <value>Задачи успешно сохранены!</value>
   </data>
   <data name="ErrorFileNotFound" xml:space="preserve">
-    <value>Ошибка: Файл '{0}' не найден.</value>
+    <value>Ошибка: Файл {0} не найден.</value>
   </data>
   <data name="NoTasksForDeletion" xml:space="preserve">
     <value>Нет активных задач для удаления.</value>
@@ -247,12 +247,15 @@
     <value>Приоритет: </value>
   </data>
   <data name="ArchiveHeader" xml:space="preserve">
-    <value>\tАРХИВ:\n</value>
+    <value>{0}АРХИВ:{1}</value>
   </data>
   <data name="NoActiveTasks" xml:space="preserve">
     <value>Нет активных задач.</value>
   </data>
   <data name="NoArchiveTasksForDeletion" xml:space="preserve">
     <value>Нет архивных задач для удаления.</value>
+  </data>
+  <data name="DisplayTaskByPriority" xml:space="preserve">
+    <value>{0}. {1}{2}Создана: {3}{2}{4}{2}Приоритет: {5}</value>
   </data>
 </root>

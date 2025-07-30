@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Resources;
 using System.Reflection;
-Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("ru-RU");
 
 ResourceManager resourceManager = new ResourceManager("MyTaskManager.Resource", Assembly.GetExecutingAssembly());
 const string SaveDirectory = "Saves";
@@ -46,7 +45,7 @@ do
 
 string PrintEntryText()
 {
-    return resourceManager.GetString("MainMenuPrompt");
+    return string.Format(resourceManager.GetString("MainMenuPrompt"), "\n");
 }
 
 void PrintAllTasks()
@@ -77,19 +76,14 @@ void PrintArchiveTasks()
         Console.WriteLine(resourceManager.GetString("NoArchiveTasks"));
         return;
     }
-    Console.WriteLine(resourceManager.GetString("ArchiveHeader"));
+    Console.WriteLine(string.Format(resourceManager.GetString("ArchiveHeader"), "\t", "\n"));
     DisplayTasks(taskManagerData.ArchiveTasks);
 }
 
 void PrintTask()
 {
     Console.Clear();
-    int choice = GetUserInput(0, 4, "Выберите, какие задачи вы хотели бы посмотреть?\n" +
-        "1. Все задачи\n" +
-        "2. Все активные задачи\n" +
-        "3. Все архивные задачи\n" +
-        "4. По срочности\n" +
-        "0. Отмена");
+    int choice = GetUserInput(0, 4, string.Format(resourceManager.GetString("ChooseTaskView"), "\n"));
     switch(choice)
     {
         case 1:
@@ -146,7 +140,7 @@ void DeleteTask()
     {
         return;
     }
-    int choice = GetUserInput(1, 2, "Введите 1 для удаления активных задач, 2 для удаления архивных задач: ");
+    int choice = GetUserInput(1, 2, resourceManager.GetString("DeleteActiveOrArchive"));
     switch(choice)
     {
         case 1:
@@ -168,7 +162,7 @@ void DeleteTask()
 
 void DeleteTasks(List<UserTask> taskList)
 {
-    int choice = GetUserInput(0, taskList.Count, "Введите порядковый номер задачи, которую хотите удалить. (Для отмены введите 0): ");
+    int choice = GetUserInput(0, taskList.Count, resourceManager.GetString("ChooseTaskToDelete"));
     if (choice == 0) return;
     choice--;
     taskList.RemoveAt(choice);
@@ -184,7 +178,7 @@ void EditTask()
         return;
     }
     PrintActiveTasks();
-    int choice = GetUserInput(0, taskManagerData.ActiveTasks.Count, "Введите порядковый номер файла для редактирования. 0 для отмены редактирования: ");
+    int choice = GetUserInput(0, taskManagerData.ActiveTasks.Count, resourceManager.GetString("ChooseTaskToEdit"));
     if (choice == 0)
     {
         return;
@@ -229,7 +223,7 @@ void MarkAsCompleted()
         return;
     }
     PrintActiveTasks();
-    int choice = GetUserInput(0, taskManagerData.ActiveTasks.Count, "Введите порядковый номер файла для редактирования. 0 для отмены редактирования: ");
+    int choice = GetUserInput(0, taskManagerData.ActiveTasks.Count, resourceManager.GetString("ChooseTaskToEdit"));
     if (choice == 0)
     {
         return;
@@ -313,7 +307,7 @@ async Task Saving(string fullSavePath)
     }
     catch (FileNotFoundException)
     {
-        Console.WriteLine(resourceManager.GetString("ErrorFileNotFound"));
+        Console.WriteLine(string.Format(resourceManager.GetString("ErrorFileNotFound"), Path.GetFileName(fullSavePath)));
     }
     catch (JsonException ex)
     {
@@ -346,7 +340,7 @@ async Task LoadTasksAsync()
             Console.WriteLine($"{i + 1}. {Path.GetFileName(files[i])}");
         }
 
-        int choice = GetUserInput(0, files.Length, "Введите порядковый номер файла для загрузки. 0 для отмены загрузки: ");
+        int choice = GetUserInput(0, files.Length, resourceManager.GetString("ChooseFileToLoad"));
         if (choice == 0)
         {
             return;
@@ -430,11 +424,7 @@ string GetTaskDescriptionInput()
 
 int GetTaskPriorityInput()
 {
-    int choice = GetUserInput(1, 4, "Выберите степень важности задачи:\n" +
-        "1. Низкая\n" +
-        "2. Средняя\n" +
-        "3. Высокая\n" +
-        "4. Срочная");
+    int choice = GetUserInput(1, 4, string.Format(resourceManager.GetString("ChoosePriority"), "\n"));
     return choice;
 }
 
@@ -472,10 +462,7 @@ void DisplayTasks(List<UserTask> printedList)
     foreach (UserTask task in printedList)
     {
         taskCount++;
-        Console.WriteLine($"{taskCount}. {task.Name}\n" +
-                $"Создана: {task.Created.ToString("g")}\n" +
-                $"{task.Description}\n" +
-                $"Приоритет: {task.TaskPriority}");
+        Console.WriteLine(string.Format(resourceManager.GetString("DisplayTaskByPriority"), taskCount, task.Name, "\n", task.Created.ToString("g"), task.Description, task.TaskPriority));
         Console.WriteLine();
     }
 }
@@ -488,10 +475,7 @@ void DisplayTasksByPriority(List<UserTask> printedList, int requiredPriority)
         if ((int)task.TaskPriority == requiredPriority)
         {
             taskCount++;
-            Console.WriteLine($"{taskCount}. {task.Name}\n" +
-                $"Создана: {task.Created.ToString("g")}\n" +
-                $"{task.Description}\n" +
-                $"Приоритет: {task.TaskPriority}");
+            Console.WriteLine(string.Format(resourceManager.GetString("DisplayTaskByPriority"), taskCount, task.Name, "\n", task.Created.ToString("g"), task.Description, task.TaskPriority));
             Console.WriteLine();
         }
     }
