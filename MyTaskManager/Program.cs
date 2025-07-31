@@ -13,6 +13,8 @@ if (!Directory.Exists(SaveDirectory))
 }
 int mainChoice = -1;
 
+ChangeLanguage();
+
 do
 {
     mainChoice = GetUserInput(0, 7, PrintEntryText());
@@ -39,8 +41,33 @@ do
         case 7:
             MarkAsCompleted();
             break;
+        case 8:
+            ChangeLanguage();
+            break;
     }
 } while(mainChoice != 0);
+
+void ChangeLanguage()
+{
+    Console.Clear();
+    
+    int langChoice = GetUserInput(1, 2, string.Format(resourceManager.GetString("ChooseLanguagePrompt"), "\n"));
+
+    switch (langChoice)
+    {
+        case 1: // Русский
+            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("ru-RU");
+            break;
+        case 2: // Английский
+            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
+            break;
+    }
+
+    Console.Clear();
+    string cultureName = Thread.CurrentThread.CurrentUICulture.NativeName;
+    Console.WriteLine(string.Format(resourceManager.GetString("LanguageChangedSuccessfully"), cultureName));
+    Console.WriteLine();
+}
 
 
 string PrintEntryText()
