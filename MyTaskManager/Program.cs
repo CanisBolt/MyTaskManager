@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Resources;
 using System.Reflection;
+using System.Linq;
 
 ResourceManager resourceManager = new ResourceManager("MyTaskManager.Resource", Assembly.GetExecutingAssembly());
 const string SaveDirectory = "Saves";
@@ -77,7 +78,7 @@ string PrintEntryText()
 
 void PrintAllTasks()
 {
-    if(taskManagerData.ActiveTasks.Count + taskManagerData.ArchiveTasks.Count == 0)
+    if(!taskManagerData.ActiveTasks.Any() && !taskManagerData.ArchiveTasks.Any())
     {
         Console.WriteLine(resourceManager.GetString("NoTasksFound"));
         return;
@@ -140,7 +141,7 @@ void PrintTaskByPriority()
 bool CheckTasks()
 {
     Console.Clear();
-    if(taskManagerData.ActiveTasks.Count + taskManagerData.ArchiveTasks.Count == 0)
+    if(!taskManagerData.ActiveTasks.Any() && !taskManagerData.ArchiveTasks.Any())
     {
         Console.WriteLine(resourceManager.GetString("NoTasksFound"));
         return true;
@@ -473,7 +474,7 @@ int GetUserInput(int minValue, int maxValue, string message)
 string GetUserInputYesNo()
 {
     string answer = Console.ReadLine();
-    while (!answer.ToLower().Equals("да") && !answer.ToLower().Equals("нет"))
+    while (!answer.ToLower().Equals(resourceManager.GetString("YesAnswer").ToLower()) && !answer.ToLower().Equals(resourceManager.GetString("NoAnswer").ToLower()))
     {
         Console.WriteLine(resourceManager.GetString("InvalidInputYesNo"));
         answer = Console.ReadLine();

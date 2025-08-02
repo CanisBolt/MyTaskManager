@@ -264,4 +264,10 @@
   <data name="LanguageChangedSuccessfully" xml:space="preserve">
     <value>The language has been successfully changed to {0}!</value>
   </data>
+  <data name="YesAnswer" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="NoAnswer" xml:space="preserve">
+    <value>No</value>
+  </data>
 </root>
