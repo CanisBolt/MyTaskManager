@@ -31,7 +31,7 @@ namespace MyTaskManager
             IsCompleted = true;
         }
 
-        public static Priority SetTaskPriority(int priority)
+        public static Priority GetTaskPriority(int priority)
         {
             switch (priority)
             {

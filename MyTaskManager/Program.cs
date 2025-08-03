@@ -89,7 +89,7 @@ void PrintAllTasks()
 
 void PrintActiveTasks()
 {
-    if (taskManagerData.ActiveTasks.Count == 0)
+    if (!taskManagerData.ActiveTasks.Any())
     {
         Console.WriteLine(resourceManager.GetString("NoActiveTasks"));
         return;
@@ -99,7 +99,7 @@ void PrintActiveTasks()
 
 void PrintArchiveTasks()
 {
-    if (taskManagerData.ArchiveTasks.Count == 0)
+    if (!taskManagerData.ArchiveTasks.Any())
     {
         Console.WriteLine(resourceManager.GetString("NoArchiveTasks"));
         return;
@@ -135,7 +135,7 @@ void PrintTaskByPriority()
 {
     Console.Clear();
     int taskPriority = GetTaskPriorityInput() - 1;
-    DisplayTasksByPriority(taskManagerData.ActiveTasks, taskPriority);
+    DisplayTasksByPriority(taskManagerData.ActiveTasks, UserTask.GetTaskPriority(taskPriority));
 }
 
 bool CheckTasks()
@@ -156,7 +156,7 @@ void AddTask()
     string description = GetTaskDescriptionInput();
     int choice = GetTaskPriorityInput() - 1;
 
-    taskManagerData.ActiveTasks.Add(new UserTask(name, description, DateTime.Now, UserTask.SetTaskPriority(choice)));
+    taskManagerData.ActiveTasks.Add(new UserTask(name, description, DateTime.Now, UserTask.GetTaskPriority(choice)));
     Console.Clear();
     Console.WriteLine(resourceManager.GetString("TaskSuccessfullyAdded"));
     Console.WriteLine();
@@ -173,14 +173,14 @@ void DeleteTask()
     {
         case 1:
             PrintActiveTasks();
-            if (taskManagerData.ActiveTasks.Count > 0)
+            if (taskManagerData.ActiveTasks.Any())
             {
                 DeleteTasks(taskManagerData.ActiveTasks);
             }
             break;
         case 2:
             PrintArchiveTasks();
-            if (taskManagerData.ArchiveTasks.Count > 0)
+            if (taskManagerData.ArchiveTasks.Any())
             {
                 DeleteTasks(taskManagerData.ArchiveTasks);
             }
@@ -231,9 +231,9 @@ void EditTask()
 
 
     int taskChoice = GetTaskPriorityInput() - 1;
-    if (!taskManagerData.ActiveTasks[choice].TaskPriority.Equals(UserTask.SetTaskPriority(taskChoice)))
+    if (!taskManagerData.ActiveTasks[choice].TaskPriority.Equals(UserTask.GetTaskPriority(taskChoice)))
     {
-        taskManagerData.ActiveTasks[choice].TaskPriority = UserTask.SetTaskPriority(taskChoice);
+        taskManagerData.ActiveTasks[choice].TaskPriority = UserTask.GetTaskPriority(taskChoice);
         isFileChanged = true;
     }
     if (isFileChanged)
@@ -287,7 +287,7 @@ async Task SaveTasksAsync()
 {
     Console.Clear();
     string saveName;
-    if (taskManagerData.ActiveTasks.Count == 0)
+    if (!taskManagerData.ActiveTasks.Any())
     {
         Console.WriteLine(resourceManager.GetString("NoTasksFound"));
         return;
@@ -376,7 +376,7 @@ async Task LoadTasksAsync()
 
         string saveName = files[choice-1].ToString();
 
-        if (taskManagerData.ActiveTasks.Count > 0 || taskManagerData.ArchiveTasks.Count > 0)
+        if (taskManagerData.ActiveTasks.Any() || taskManagerData.ArchiveTasks.Any())
         {
             Console.WriteLine(resourceManager.GetString("CurrentDataWillBeErased"));
             string answer = GetUserInputYesNo();
@@ -484,7 +484,7 @@ string GetUserInputYesNo()
 }
 
 /* Display tasks methods */
-void DisplayTasks(List<UserTask> printedList)
+void DisplayTasks(IEnumerable<UserTask> printedList)
 {
     int taskCount = 0;
     foreach (UserTask task in printedList)
@@ -495,20 +495,15 @@ void DisplayTasks(List<UserTask> printedList)
     }
 }
 
-void DisplayTasksByPriority(List<UserTask> printedList, int requiredPriority)
+void DisplayTasksByPriority(List<UserTask> printedList, UserTask.Priority priority)
 {
-    int taskCount = 0;
-    foreach (UserTask task in printedList)
-    {
-        if ((int)task.TaskPriority == requiredPriority)
-        {
-            taskCount++;
-            Console.WriteLine(string.Format(resourceManager.GetString("DisplayTaskByPriority"), taskCount, task.Name, "\n", task.Created.ToString("g"), task.Description, task.TaskPriority));
-            Console.WriteLine();
-        }
-    }
-    if (taskCount == 0)
+    var filteredTasks = printedList.Where(task => task.TaskPriority == priority);
+    if (!filteredTasks.Any())
     {
         Console.WriteLine(resourceManager.GetString("NoTasksWithPriority"));
+    }
+    else
+    {
+        DisplayTasks(filteredTasks);
     }
 }
