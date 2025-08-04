@@ -172,7 +172,7 @@
     <value>Mark task as complete? (yes/no)</value>
   </data>
   <data name="MoveToArchivePrompt" xml:space="preserve">
-    <value>Do you want to move this task to the archive? (yes/no)</value>
+    <value>Would you like to move this task to the archive? (yes/no).</value>
   </data>
   <data name="TaskCompletedAndArchived" xml:space="preserve">
     <value>Task completed and added to archive!</value>

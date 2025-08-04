@@ -172,7 +172,7 @@
     <value>Отметить задачу как выполненную? (да/нет)</value>
   </data>
   <data name="MoveToArchivePrompt" xml:space="preserve">
-    <value>Желаете переместить данную задачу в архив? (да/нет)</value>
+    <value>Желаете переместить данную задачу в архив? (да/нет).</value>
   </data>
   <data name="TaskCompletedAndArchived" xml:space="preserve">
     <value>Задача выполнена и добавлена в архив!</value>

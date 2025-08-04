@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Resources;
 using System.Reflection;
-using System.Linq;
+
 
 ResourceManager resourceManager = new ResourceManager("MyTaskManager.Resource", Assembly.GetExecutingAssembly());
 const string SaveDirectory = "Saves";
@@ -48,6 +48,9 @@ do
     }
 } while(mainChoice != 0);
 
+/// <summary>
+/// Changing app language (Rus or Eng)
+/// </summary>
 void ChangeLanguage()
 {
     Console.Clear();
@@ -70,12 +73,15 @@ void ChangeLanguage()
     Console.WriteLine();
 }
 
-
 string PrintEntryText()
 {
     return string.Format(resourceManager.GetString("MainMenuPrompt"), "\n");
 }
 
+/*
+ * Methods below for Printing tasks to user
+ */
+#region
 void PrintAllTasks()
 {
     if(!taskManagerData.ActiveTasks.Any() && !taskManagerData.ArchiveTasks.Any())
@@ -137,6 +143,7 @@ void PrintTaskByPriority()
     int taskPriority = GetTaskPriorityInput() - 1;
     DisplayTasksByPriority(taskManagerData.ActiveTasks, UserTask.GetTaskPriority(taskPriority));
 }
+#endregion
 
 bool CheckTasks()
 {
@@ -168,28 +175,30 @@ void DeleteTask()
     {
         return;
     }
+
     int choice = GetUserInput(1, 2, resourceManager.GetString("DeleteActiveOrArchive"));
-    switch(choice)
+    switch (choice)
     {
         case 1:
             PrintActiveTasks();
             if (taskManagerData.ActiveTasks.Any())
             {
-                DeleteTasks(taskManagerData.ActiveTasks);
+                DeleteSelectedTask(taskManagerData.ActiveTasks);
             }
             break;
         case 2:
             PrintArchiveTasks();
             if (taskManagerData.ArchiveTasks.Any())
             {
-                DeleteTasks(taskManagerData.ArchiveTasks);
+                DeleteSelectedTask(taskManagerData.ArchiveTasks);
             }
             break;
     }
 }
 
-void DeleteTasks(List<UserTask> taskList)
+void DeleteSelectedTask(List<UserTask> taskList)
 {
+    DisplayTasks(taskList);
     int choice = GetUserInput(0, taskList.Count, resourceManager.GetString("ChooseTaskToDelete"));
     if (choice == 0) return;
     choice--;
@@ -212,10 +221,10 @@ void EditTask()
         return;
     }
     bool isFileChanged = false;
-
     choice--;
-    string name = GetTaskNameInput();
 
+    string name = GetTaskNameInput();
+    // Check if user decided to change task name
     if (!string.IsNullOrEmpty(name))
     {
         taskManagerData.ActiveTasks[choice].Name = name;
@@ -223,6 +232,7 @@ void EditTask()
     }
 
     string description = GetTaskDescriptionInput();
+    // Check if user decided to change task text
     if (!string.IsNullOrEmpty(description))
     {
         taskManagerData.ActiveTasks[choice].Description = description;
@@ -231,6 +241,7 @@ void EditTask()
 
 
     int taskChoice = GetTaskPriorityInput() - 1;
+    // Check if user decided to change task priority
     if (!taskManagerData.ActiveTasks[choice].TaskPriority.Equals(UserTask.GetTaskPriority(taskChoice)))
     {
         taskManagerData.ActiveTasks[choice].TaskPriority = UserTask.GetTaskPriority(taskChoice);
@@ -260,13 +271,15 @@ void MarkAsCompleted()
     choice--;
     Console.WriteLine(resourceManager.GetString("MarkAsCompletedPrompt"));
     string answer = GetUserInputYesNo();
-    if (answer.ToLower().Equals("да"))
+    if (answer.ToLower().Equals(resourceManager.GetString("YesAnswer").ToLower()))
     {
+        // Mark task as completed
         taskManagerData.ActiveTasks[choice].IsCompleted = true;
         Console.WriteLine(resourceManager.GetString("MoveToArchivePrompt"));
         answer = GetUserInputYesNo();
-        if (answer.ToLower().Equals("да"))
+        if (answer.ToLower().Equals(resourceManager.GetString("YesAnswer").ToLower()))
         {
+            // Mark task as completed and send it to archive
             taskManagerData.ArchiveTasks.Add(new UserTask(taskManagerData.ActiveTasks[choice].Name, taskManagerData.ActiveTasks[choice].Description, taskManagerData.ActiveTasks[choice].Created, DateTime.Now));
             taskManagerData.ActiveTasks.Remove(taskManagerData.ActiveTasks[choice]);
             Console.WriteLine(resourceManager.GetString("TaskCompletedAndArchived"));
@@ -275,8 +288,9 @@ void MarkAsCompleted()
         {
             Console.WriteLine(resourceManager.GetString("DeleteAfterCompletionPrompt"));
             answer = GetUserInputYesNo();
-            if (answer.ToLower().Equals("да"))
+            if (answer.ToLower().Equals(resourceManager.GetString("YesAnswer").ToLower()))
             {
+                // Mark task as completed and delete it
                 taskManagerData.ActiveTasks.Remove(taskManagerData.ActiveTasks[choice]);
             }
         }
@@ -457,7 +471,7 @@ int GetTaskPriorityInput()
 }
 
 
-/* User input methods */
+// User input methods
 int GetUserInput(int minValue, int maxValue, string message)
 {
     Console.WriteLine(message);
@@ -479,11 +493,10 @@ string GetUserInputYesNo()
         Console.WriteLine(resourceManager.GetString("InvalidInputYesNo"));
         answer = Console.ReadLine();
     }
-
     return answer;
 }
 
-/* Display tasks methods */
+// Display tasks methods
 void DisplayTasks(IEnumerable<UserTask> printedList)
 {
     int taskCount = 0;
