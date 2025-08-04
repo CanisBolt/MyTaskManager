@@ -321,11 +321,11 @@ async Task SaveTasksAsync()
     {
         Console.WriteLine(resourceManager.GetString("FileExistsOverwriteWarning"));
         string answer = GetUserInputYesNo();
-        if (answer.ToLower().Equals("да"))
+        if (answer.ToLower().Equals(resourceManager.GetString("YesAnswer").ToLower()))
         {
             await Saving(fullSavePath);
         }
-        else if (answer.ToLower().Equals("нет"))
+        else if (answer.ToLower().Equals(resourceManager.GetString("NoAnswer").ToLower()))
         {
             Console.WriteLine(resourceManager.GetString("SaveCancelled"));
             return;
